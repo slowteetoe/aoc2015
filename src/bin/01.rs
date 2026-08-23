@@ -30,16 +30,28 @@ pub fn part_two(input: &str) -> Option<i64> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use rstest::rstest;
 
-    #[test]
-    fn test_part_one() {
-        let result = part_one(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
+    #[rstest]
+    #[case("(())", 0)]
+    #[case("()()", 0)]
+    #[case("(((", 3)]
+    #[case("(()(()(", 3)]
+    #[case("))(((((", 3)]
+    #[case("())",-1)]
+    #[case("))(",-1)]
+    #[case(")))",-3)]
+    #[case(")())())",-3)]
+    fn test_part_one(#[case] input: &str, #[case] expected: i64) {
+        let result = part_one(input);
+        assert_eq!(result, Some(expected));
     }
 
-    #[test]
-    fn test_part_two() {
-        let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
+    #[rstest]
+    #[case(")", 1)]
+    #[case("()())", 5)]
+    fn test_part_two(#[case] input: &str, #[case] expected: i64) {
+        let result = part_two(input);
+        assert_eq!(result, Some(expected));
     }
 }
