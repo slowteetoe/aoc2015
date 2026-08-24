@@ -1,4 +1,5 @@
 use itertools::Itertools;
+use std::{cmp::Reverse, collections::BinaryHeap};
 
 advent_of_code::solution!(2);
 
@@ -13,16 +14,43 @@ pub fn part_one(input: &str) -> Option<u32> {
                     .map(|v| v.parse::<u32>().unwrap())
                     .collect_tuple()
                     .unwrap();
-                let sides = [l * w, w * h, h * l];
-                let slack = sides.iter().min().unwrap();
-                slack + sides.iter().sum::<u32>() * 2
+                let mut sides = BinaryHeap::new();
+                sides.push(Reverse(l * w));
+                sides.push(Reverse(w * h));
+                sides.push(Reverse(h * l));
+                let Reverse(smallest) = sides.pop().unwrap();
+                let Reverse(second_smallest) = sides.pop().unwrap();
+                let Reverse(biggest) = sides.pop().unwrap();
+
+                2 * smallest + 2 * second_smallest + 2 * biggest + smallest
             })
             .sum(),
     )
 }
 
-pub fn part_two(input: &str) -> Option<u64> {
-    None
+pub fn part_two(input: &str) -> Option<u32> {
+    Some(
+        input
+            .lines()
+            .map(|line| {
+                let (l, w, h): (u32, u32, u32) = line
+                    .splitn(3, "x")
+                    .map(|v| v.parse::<u32>().unwrap())
+                    .collect_tuple()
+                    .unwrap();
+                let mut sides = BinaryHeap::new();
+                sides.push(Reverse(l));
+                sides.push(Reverse(w));
+                sides.push(Reverse(h));
+
+                let Reverse(smallest) = sides.pop().unwrap();
+                let Reverse(second_smallest) = sides.pop().unwrap();
+                let Reverse(biggest) = sides.pop().unwrap();
+
+                (2 * smallest) + (2 * second_smallest) + (smallest * second_smallest * biggest)
+            })
+            .sum(),
+    )
 }
 
 #[cfg(test)]
@@ -38,6 +66,6 @@ mod tests {
     #[test]
     fn test_part_two() {
         let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
+        assert_eq!(result, Some(34 + 14));
     }
 }
