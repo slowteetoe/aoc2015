@@ -13,7 +13,12 @@ pub fn part_one(input: &str) -> Option<u64> {
 }
 
 pub fn part_two(input: &str) -> Option<u64> {
-    None
+    let input = input.trim();
+    (1..=99_000_000).into_par_iter().find_first(|i| {
+        // too many allocations, but roll with it for now...
+        let s = Md5::digest(format!("{}{}", input, i).as_bytes());
+        hex::encode(s).starts_with("000000")
+    })
 }
 
 #[cfg(test)]
@@ -27,11 +32,5 @@ mod tests {
     fn test_part_one(#[case] input: &str, #[case] expected: Option<u64>) {
         let result = part_one(&input);
         assert_eq!(result, expected);
-    }
-
-    #[test]
-    fn test_part_two() {
-        let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
     }
 }
