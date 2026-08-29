@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use itertools::Itertools;
 
 advent_of_code::solution!(5);
@@ -47,7 +45,8 @@ fn is_nice_line(line: &str) -> bool {
 
 fn is_nice_part2(input: &str) -> bool {
     let mut separated = false;
-    for (l, boundary, r) in input
+    // oops, originally made this more difficult (and wrong) by not allowing 3 of the same char... e.g. aaa
+    for (l, _boundary, r) in input
         .trim()
         .chars()
         .map(Some)
@@ -55,40 +54,26 @@ fn is_nice_part2(input: &str) -> bool {
         .chain(std::iter::once(None))
         .tuple_windows()
     {
-        if l == r && l != boundary {
-            println!("found {l:?}{boundary:?}{r:?} as separated");
+        if l == r {
             separated = true;
         }
     }
 
-    let mut repeated_pairs = 0;
-    let mut pairs = HashMap::new();
-    for (l, r) in input.trim().chars().map(Some).chain(None).tuple_windows() {
-        if let Some(r) = r {
-            pairs
-                .entry(format!("{}{r}", l.unwrap()))
-                .and_modify(|v| *v += 1)
-                .or_insert(1);
-        }
-    }
-    let interesting = pairs.iter().filter(|(_, v)| **v > 1).collect_vec();
-    dbg!(&interesting);
-
-    for (c, count) in interesting {
-        if *count >= 2 {
-            repeated_pairs += 1;
-            // check to make sure there's no overlap though - this is expensive, but should be rare
-            if c.chars().nth(0) == c.chars().nth(1)
-                && input.contains(&format!("{0}{0}{0}", c.chars().nth(0).unwrap(),))
-                && !input.contains(&format!("{0}{0}{0}{0}", c.chars().nth(0).unwrap(),))
-            {
-                println!("disallowed {c} because it occurred with overlap in {input}");
-                repeated_pairs -= 1;
+    // figure out if there are any repeated pairs
+    // basically, does input[i+2..] contain input[i] + input[i+1]?
+    let mut repeated_pairs = false;
+    let chars = input.trim().chars().collect_vec();
+    'outer: for i in 0..chars.len() - 3 {
+        // no way for last two chars to match, so avoid indexing problems
+        for n in i + 2..chars.len() - 1 {
+            if chars[i] == chars[n] && chars[i + 1] == chars[n + 1] {
+                repeated_pairs = true;
+                break 'outer;
             }
         }
     }
-    dbg!(&separated, &repeated_pairs);
-    separated && repeated_pairs >= 1
+
+    separated && repeated_pairs
 }
 
 pub fn part_two(input: &str) -> Option<u64> {
@@ -97,7 +82,7 @@ pub fn part_two(input: &str) -> Option<u64> {
             .trim()
             .lines()
             .map(|line| (line, is_nice_part2(line)))
-            .inspect(|f| println!("{:?}", f))
+            // .inspect(|f| println!("{:?}", f))
             .filter(|nice| nice.1 == true)
             .count() as u64,
     )
