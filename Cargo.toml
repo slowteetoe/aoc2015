@@ -33,6 +33,7 @@ md5-many = "0.1.0-alpha.4"
 md-5 = "0.11"
 hex = "0.4.3"
 rayon = "1.12.0"
+anyhow = "1.0.104"
 
 [dev-dependencies]
 rstest = "0.26"
