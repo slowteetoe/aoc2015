@@ -88,8 +88,6 @@ pub fn part_one(input: &str) -> Option<u64> {
             }
         }
     });
-
-    // 342020 is too low
     Some(lights.iter().filter(|v| **v == 1).count() as u64)
 }
 
@@ -104,7 +102,32 @@ fn to_array_coords(from: (u16, u16), to: (u16, u16)) -> Vec<usize> {
 }
 
 pub fn part_two(input: &str) -> Option<u64> {
-    None
+    let mut lights = [0u8; 1_000_000];
+
+    let instructions = parse_instructions(input);
+    instructions.iter().for_each(|inst| match inst.command {
+        TurnOn(from, to) => {
+            for coord in to_array_coords(from, to) {
+                lights[coord] += 1;
+            }
+        }
+        Command::TurnOff(from, to) => {
+            for coord in to_array_coords(from, to) {
+                lights[coord] = if lights[coord] > 0 {
+                    lights[coord] - 1
+                } else {
+                    0
+                }
+            }
+        }
+        Toggle(from, to) => {
+            for coord in to_array_coords(from, to) {
+                lights[coord] += 2;
+            }
+        }
+    });
+    let total: u64 = lights.iter().fold(0, |acc, n| acc + *n as u64);
+    Some(total)
 }
 
 #[cfg(test)]
