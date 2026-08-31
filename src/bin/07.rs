@@ -1,6 +1,5 @@
 use std::collections::BTreeMap;
 
-use chrono::format::parse;
 use itertools::Itertools;
 
 use crate::Operation::{
@@ -10,7 +9,7 @@ use crate::Operation::{
 
 advent_of_code::solution!(7);
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 enum Operation {
     CopyValue(u64, String),
     CopyRegister(String, String),
@@ -81,11 +80,9 @@ fn parse_operations(input: &str) -> Vec<Operation> {
     ops
 }
 
-// maybe a consuming multipass across the lines, backed by "registers" (btreemap)
-pub fn part_one(input: &str) -> Option<u64> {
-    let mut operations = parse_operations(input);
+fn process_operations(mut operations: Vec<Operation>, registers: &mut BTreeMap<String, u64>) {
     // loop over the operations, eventually they should all be resolved
-    let mut registers = BTreeMap::<String, u64>::new();
+
     let mut remaining_ops = operations.len();
     while remaining_ops > 0 {
         let remaining = operations
@@ -170,12 +167,27 @@ pub fn part_one(input: &str) -> Option<u64> {
         remaining_ops = remaining.len();
         operations = remaining;
     }
+}
+
+// maybe a consuming multipass across the lines, backed by "registers" (btreemap)
+pub fn part_one(input: &str) -> Option<u64> {
+    let operations = parse_operations(input);
+    let mut registers = BTreeMap::<String, u64>::new();
+    process_operations(operations, &mut registers);
 
     Some(*registers.get("a").unwrap()) // 3176
 }
 
 pub fn part_two(input: &str) -> Option<u64> {
-    None
+    // Now, take the signal you got on wire a, override wire b to that signal, and reset the other wires (including wire a). What new signal is ultimately provided to wire a?
+    let mut operations = parse_operations(input);
+    operations.retain(|v| *v != CopyValue(44430, "b".to_owned()));
+
+    let mut registers = BTreeMap::<String, u64>::new();
+    registers.insert("b".to_owned(), 3176);
+    process_operations(operations, &mut registers);
+
+    Some(*registers.get("a").unwrap())
 }
 
 #[cfg(test)]
