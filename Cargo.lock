@@ -30,6 +30,7 @@ dependencies = [
  "md5-many",
  "pico-args",
  "rayon",
+ "regex",
  "rstest",
  "tinyjson",
 ]
