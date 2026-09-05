@@ -113,6 +113,113 @@ fn shortest_path_all_nodes<'a>(graph: &UnGraphMap<&'a str, u32>) -> Option<(u32,
     Some((min_total_cost, path_nodes))
 }
 
+fn longest_path_all_nodes<'a>(graph: &UnGraphMap<&'a str, u32>) -> Option<(u32, Vec<&'a str>)> {
+    let nodes: Vec<&str> = graph.nodes().collect();
+    let n = nodes.len();
+    if n == 0 {
+        return None;
+    }
+    if n == 1 {
+        return Some((0, nodes));
+    }
+
+    // Map each node string slice to an integer index (0 to n-1) for bitmasking
+    let node_to_idx: HashMap<&str, usize> = nodes
+        .iter()
+        .enumerate()
+        .map(|(i, &node)| (node, i))
+        .collect();
+
+    // Adjacency matrix for quick weight lookup (None means no edge exists)
+    let mut adj = vec![vec![None; n]; n];
+    for (u, v, &weight) in graph.all_edges() {
+        let idx_u = node_to_idx[&u];
+        let idx_v = node_to_idx[&v];
+        adj[idx_u][idx_v] = Some(weight);
+        adj[idx_v][idx_u] = Some(weight); // Undirected
+    }
+
+    // DP table: dp[mask][current_node] = Option<(max_cost, parent_node)>
+    // Using Option handles disconnected graphs safely without risking numeric overflow.
+    let num_states = 1 << n;
+    let mut dp = vec![vec![None; n]; num_states];
+
+    // Base cases: Starting at any single node has a path cost of 0
+    for i in 0..n {
+        dp[1 << i][i] = Some((0, None));
+    }
+
+    // Iterate through all bit combinations (masks)
+    for mask in 1..num_states {
+        for u in 0..n {
+            // Skip if this state hasn't been validly reached
+            let current_cost = match dp[mask][u] {
+                Some((cost, _)) => cost,
+                None => continue,
+            };
+
+            // Try to visit an unvisited neighbor `v`
+            for v in 0..n {
+                if (mask & (1 << v)) == 0 {
+                    if let Some(edge_weight) = adj[u][v] {
+                        let next_mask = mask | (1 << v);
+                        let path_cost = current_cost + edge_weight;
+
+                        // Maximize the cost for the next state
+                        match dp[next_mask][v] {
+                            Some((existing_cost, _)) if path_cost <= existing_cost => {
+                                // Existing path is already longer or equal; do nothing
+                            }
+                            _ => {
+                                // Found a new longest path to state `next_mask` ending at node `v`
+                                dp[next_mask][v] = Some((path_cost, Some(u)));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Find the maximum cost state where all nodes are visited (mask = (1 << n) - 1)
+    let final_mask = num_states - 1;
+    let mut max_total_cost = 0;
+    let mut last_node = None;
+    let mut path_found = false;
+
+    for i in 0..n {
+        if let Some((cost, _)) = dp[final_mask][i] {
+            if !path_found || cost > max_total_cost {
+                max_total_cost = cost;
+                last_node = Some(i);
+                path_found = true;
+            }
+        }
+    }
+
+    if !path_found {
+        return None; // No Hamiltonian path exists that visits all nodes
+    }
+
+    // Reconstruct the path backwards
+    let mut path_indices = Vec::new();
+    let mut curr_mask = final_mask;
+    let mut curr_node = last_node;
+
+    while let Some(u) = curr_node {
+        path_indices.push(u);
+        let prev_node = dp[curr_mask][u].and_then(|(_, parent)| parent);
+        curr_mask ^= 1 << u; // Clear the bit to step backward
+        curr_node = prev_node;
+    }
+    path_indices.reverse();
+
+    // Map indices back to original &str references
+    let path_nodes = path_indices.into_iter().map(|idx| nodes[idx]).collect();
+
+    Some((max_total_cost, path_nodes))
+}
+
 pub fn part_one(input: &str) -> Option<u64> {
     let graph = parse_input(input);
     // println!("{:?}", Dot::new(&graph));
@@ -129,6 +236,17 @@ pub fn part_one(input: &str) -> Option<u64> {
 }
 
 pub fn part_two(input: &str) -> Option<u64> {
+    let graph = parse_input(input);
+    // println!("{:?}", Dot::new(&graph));
+
+    if let Some((cost, path)) = longest_path_all_nodes(&graph) {
+        println!(
+            "Longest path visiting all nodes: {} [total cost: {cost}]",
+            path.join(" -> ")
+        );
+
+        return Some(cost as u64);
+    }
     None
 }
 
