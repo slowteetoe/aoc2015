@@ -27,7 +27,7 @@ pub fn part_one(input: &str) -> Option<u64> {
             .inspect(|v| {
                 println!("{:?}", &v);
             })
-            .map(|(a, b)| b.0 - b.1)
+            .map(|(_, b)| b.0 - b.1)
             .sum(),
     )
     // supposedly, 1344 is not correct
