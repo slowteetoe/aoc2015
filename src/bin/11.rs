@@ -68,8 +68,13 @@ pub fn part_one(input: &str) -> Option<String> {
     Some(String::from_utf8(next_password).unwrap())
 }
 
-pub fn part_two(input: &str) -> Option<u64> {
-    None
+pub fn part_two(input: &str) -> Option<String> {
+    // AGAIN, make sure to trim the input!
+    let mut next_password =
+        next_valid_password(input.trim().chars().map(|c| c as u8).collect_vec());
+
+    next_password = next_valid_password(next_password);
+    Some(String::from_utf8(next_password).unwrap())
 }
 
 #[cfg(test)]
