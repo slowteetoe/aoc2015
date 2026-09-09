@@ -15,7 +15,9 @@ pub fn part_one(input: &str) -> Option<i64> {
 
 pub fn part_two(input: &str) -> Option<u64> {
     let parsed: Value = serde_json::from_str(input.trim()).unwrap();
-    dbg!(&parsed);
+    // dbg!(&parsed);
+    // basically, need to recurse through this whole structure and ignore any object with a value "red"
+    // which sounds tedious, skipping for now
     None
 }
 
