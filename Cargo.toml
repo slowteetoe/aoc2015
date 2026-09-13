@@ -40,7 +40,7 @@ indoc = "2.0.7"
 serde_json = "1.0.151"
 
 [dev-dependencies]
-rstest = "0.26"
+rstest = "0.27"
 criterion = "0.8.2"
 
 [[bench]]

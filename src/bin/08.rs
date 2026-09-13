@@ -36,7 +36,7 @@ pub fn part_one(input: &str) -> Option<u64> {
     // returns 1342 for some reason
 }
 
-pub fn part_two(input: &str) -> Option<u64> {
+pub fn part_two(_input: &str) -> Option<u64> {
     None
 }
 
