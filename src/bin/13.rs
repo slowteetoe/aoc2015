@@ -94,8 +94,9 @@ pub fn part_one(input: &str) -> Option<i64> {
     }))
 }
 
+// going to get sneaky with part 2 - we have to add ourselves, but since the pairing will always be apathetic (0 score)
+// we'll just NOT insert into the map and default to 0 instead of unwrapping
 fn happiness_score(arrangement: &Vec<String>, happiness_map: &BTreeMap<(&str, &str), i64>) -> i64 {
-    // should be 2*8 = 16 values per round
     let combos: Vec<(_, _)> = arrangement
         .iter()
         .chain(vec![arrangement.iter().nth(0).unwrap()])
@@ -106,16 +107,38 @@ fn happiness_score(arrangement: &Vec<String>, happiness_map: &BTreeMap<(&str, &s
         // remember, people have different happiness levels - Alice might like Bob, but Bob hates Alice
         acc += happiness_map
             .get(&(combo.0.as_str(), combo.1.as_str()))
-            .unwrap();
+            .unwrap_or_else(|| &0);
         acc += happiness_map
             .get(&(combo.1.as_str(), combo.0.as_str()))
-            .unwrap();
+            .unwrap_or_else(|| &0);
         acc
     })
 }
 
-pub fn part_two(_input: &str) -> Option<u64> {
-    None
+pub fn part_two(input: &str) -> Option<i64> {
+    let (actors, seatings) = get_seating_info(input);
+    let happiness_map = build_happiness_map(&seatings);
+
+    // now figure out the happiness scores
+    // with 8 people in the input, there's only 7! (5040) combinations - so we can just check them all
+    let p1 = "ME";
+    let l = actors.len();
+    let permutations = actors
+        .into_iter()
+        .permutations(l)
+        .map(|mut perm| {
+            perm.push(p1.to_owned());
+            perm
+        })
+        .collect_vec();
+
+    Some(permutations.iter().fold(i64::MIN, |mut acc, perm| {
+        let h = happiness_score(perm, &happiness_map);
+        if h > acc {
+            acc = h;
+        }
+        acc
+    }))
 }
 
 #[cfg(test)]
