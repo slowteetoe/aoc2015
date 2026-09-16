@@ -27,7 +27,6 @@ pub fn parse_line(input: &str) -> (u64, BTreeMap<String, u64>) {
         let (k, v) = m.split_once(": ").unwrap();
         map.insert(k.trim().to_owned(), v.parse::<u64>().unwrap());
     });
-    dbg!(&map);
     (auntie, map)
 }
 
@@ -72,7 +71,6 @@ pub fn part_one(input: &str) -> Option<u64> {
         .lines()
         .map(|line| parse_line(line))
         .collect_vec();
-    dbg!(&fingerprints);
 
     fingerprints
         .iter()
@@ -89,7 +87,43 @@ pub fn part_one(input: &str) -> Option<u64> {
 }
 
 pub fn part_two(input: &str) -> Option<u64> {
-    None
+    let fingerprints = input
+        .trim()
+        .lines()
+        .map(|line| parse_line(line))
+        .collect_vec();
+
+    fingerprints
+        .iter()
+        // more tedious, but easier to hardcode the entire test
+        .filter_map(|(aunt, m)| {
+            if (m.get(&"children".to_owned()).is_none()
+                || m.get(&"children".to_owned()).is_some_and(|v| *v == 3))
+                && (m.get(&"cats".to_owned()).is_none()
+                    || m.get(&"cats".to_owned()).is_some_and(|v| *v > 7))
+                && (m.get(&"samoyeds".to_owned()).is_none()
+                    || m.get(&"samoyeds".to_owned()).is_some_and(|v| *v == 2))
+                && (m.get(&"pomeranians".to_owned()).is_none()
+                    || m.get(&"pomeranians".to_owned()).is_some_and(|v| *v < 3))
+                && (m.get(&"akitas".to_owned()).is_none()
+                    || m.get(&"akitas".to_owned()).is_some_and(|v| *v == 0))
+                && (m.get(&"vizslas".to_owned()).is_none()
+                    || m.get(&"vizslas".to_owned()).is_some_and(|v| *v == 0))
+                && (m.get(&"goldfish".to_owned()).is_none()
+                    || m.get(&"goldfish".to_owned()).is_some_and(|v| *v < 5))
+                && (m.get(&"trees".to_owned()).is_none()
+                    || m.get(&"trees".to_owned()).is_some_and(|v| *v > 3))
+                && (m.get(&"cars".to_owned()).is_none()
+                    || m.get(&"cars".to_owned()).is_some_and(|v| *v == 2))
+                && (m.get(&"perfumes".to_owned()).is_none()
+                    || m.get(&"perfumes".to_owned()).is_some_and(|v| *v == 1))
+            {
+                Some(*aunt)
+            } else {
+                None
+            }
+        })
+        .nth(0)
 }
 
 #[cfg(test)]
