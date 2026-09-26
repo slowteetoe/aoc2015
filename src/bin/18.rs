@@ -59,9 +59,14 @@ impl Grid {
         if row < 0 || row >= self.rows as isize || col < 0 || col >= self.cols as isize {
             return None;
         }
-        // 1 2 3 4 5 6 7 8 9
-        // 2,1 = 8
         Some(self.data[(row * self.cols as isize + col) as usize])
+    }
+
+    fn illuminate_corners(&mut self) {
+        self.data[0] = 1;
+        self.data[self.cols - 1] = 1;
+        self.data[self.rows * self.cols - self.cols] = 1;
+        self.data[self.rows * self.cols - 1] = 1;
     }
 }
 
@@ -100,7 +105,13 @@ pub fn part_one(input: &str) -> Option<u64> {
 }
 
 pub fn part_two(input: &str) -> Option<u64> {
-    None
+    let mut grid = parse_input(input);
+    grid.illuminate_corners();
+    for _ in 0..100 {
+        grid.step();
+        grid.illuminate_corners();
+    }
+    Some(grid.lit())
 }
 
 #[cfg(test)]
